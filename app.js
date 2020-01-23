@@ -6,6 +6,7 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+const mongoUtil = require("./utilities/mongoUtil");
 
 var app = express();
 
@@ -27,6 +28,12 @@ app.use(function(req, res, next) {
   next(createError(404));
 });
 
+mongoUtil.connectToServer( function( err, client ) {
+  if (err) console.log(err);
+
+
+  // start the rest of your app here
+} );
 // error handler
 app.use(function(err, req, res, next) {
   // set locals, only providing error in development
