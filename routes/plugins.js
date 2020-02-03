@@ -15,4 +15,13 @@ router.post('/', async function(req, res, next) {
     }
 });
 
+router.get('/', async function(req, res, next) {
+    const collection = database.getDb().collection('plugins');
+    const result = await collection.find({}).toArray();
+    if(result == null || result == undefined){
+        res.status(500);
+    }
+    res.status(200).send(result);
+});
+
 module.exports = router;
