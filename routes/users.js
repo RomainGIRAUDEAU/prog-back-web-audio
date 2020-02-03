@@ -4,59 +4,33 @@ const mongodb = require("mongodb");
 const ObjectID = require('mongodb').ObjectID;
 const fs = require('fs');
 const multer  = require('multer');
+const test = require("assert");
 const upload = multer();
 
 const router = express.Router();
 
 // Downloading a single file
-router.get('/file/:filename', (req, res) => {
-  let db = mongoUtil.getDb();
-  const collection = db.collection('images.files');
-  const collectionChunks = db.collection('images.chunks');
+router.get('/file/:filename', async (req, res) => {
+    let bucket = new mongodb.GridFSBucket(mongoUtil.getDb(), {bucketName: 'images'});
+    let fileCollection = mongoUtil.getDb().collection("images.files");
+    let result = await fileCollection.findOne({filename: req.params.filename});
+   console.log(result);
 
 
-  collection.find({filename: req.params.filename}).toArray(function(err, docs){
-    if(err){
-      return res.render('index', {
-        title: 'File error',
-        message: 'Error finding file',
-        error: err.errMsg});
-    }
-    if(!docs || docs.length === 0){
-      return res.render('index', {
-        title: 'Download Error',
-        message: 'No file found'});
-    }else{
+    let downloadStream = bucket.openDownloadStream(ObjectID(result._id));
 
-      //Retrieving the chunks from the db
-      collectionChunks.find({files_id : docs[0]._id})
-          .sort({n: 1}).toArray(function(err, chunks){
-        if(err){
-          return res.render('index', {
-            title: 'Download Error',
-            message: 'Error retrieving chunks',
-            error: err.errmsg});
-        }
-        if(!chunks || chunks.length === 0){
-          //No data found
-          return res.render('index', {
-            title: 'Download Error',
-            message: 'No data found'});
-        }
+    downloadStream.on('data', (chunk) => {
+        res.write(chunk);
+    });
 
-        let fileData = [];
-        for(let i=0; i<chunks.length;i++){
-          //This is in Binary JSON or BSON format, which is stored
-          //in fileData array in base64 endocoded string format
+    downloadStream.on('error', () => {
+        res.sendStatus(404);
+    });
 
-          fileData.push(chunks[i].data.toString('base64'));
-        }
+    downloadStream.on('end', () => {
+        res.end();
+    });
 
-
-        res.send( fileData);
-      });
-    }
-  });
 });
 
 /* GET users listing. */
