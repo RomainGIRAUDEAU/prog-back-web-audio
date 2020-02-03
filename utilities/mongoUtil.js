@@ -16,18 +16,5 @@ module.exports = {
     getDb: function() {
         return _db;
     },
-    createBucket:function (db) {
-        return new MongoClient.GridFSBucket(db,{
-            chunkSizeBytes: 1024,
-            bucketName: 'images'
-        });
-    },
 
-    getBucket:function(db,bucketName){
-       return new MongoClient.GridFSBucket(db,{
-            chunkSizeBytes:100000,
-            bucketName: bucketName
-
-        });
-    }
 };
