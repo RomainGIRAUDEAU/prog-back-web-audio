@@ -14,7 +14,8 @@ router.get('/file/:filename', async (req, res) => {
     let bucket = new mongodb.GridFSBucket(mongoUtil.getDb(), {bucketName: 'images'});
     let fileCollection = mongoUtil.getDb().collection("images.files");
     let result = await fileCollection.findOne({filename: req.params.filename});
-   console.log(result);
+    console.log(result);
+
 
 
     let downloadStream = bucket.openDownloadStream(ObjectID(result._id));
