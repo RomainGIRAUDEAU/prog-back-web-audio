@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const ObjectID = require('mongodb').ObjectID;
 const database = require('../utilities/mongoUtil');
 
 
@@ -22,6 +23,19 @@ router.get('/', async function(req, res, next) {
         res.status(500);
     }
     res.status(200).send(result);
+});
+
+
+router.delete('/:id', async function(req, res, next) {
+  var id = req.params.id;
+  console.log(id);
+    const collection = database.getDb().collection('plugins');
+    var myquery = { _id : ObjectID(id)};
+    collection.deleteOne(myquery, function(err, obj) {
+        if (err) throw err;
+        console.log("1 document deleted");
+        res.sendStatus(200);
+      });
 });
 
 module.exports = router;
