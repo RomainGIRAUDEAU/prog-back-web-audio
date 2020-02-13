@@ -8,6 +8,7 @@ var multer = require('multer');
 const cors = require('cors');
 var upload = multer();
 
+const accountRouter = require('./routes/account');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const pluginsRouter = require('./routes/plugins');
@@ -35,6 +36,7 @@ if(app.get('env')=== 'development') {
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/plugins', pluginsRouter);
+app.use('/account', accountRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
