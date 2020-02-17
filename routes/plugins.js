@@ -4,6 +4,7 @@ const mongodb = require("mongodb");
 const database = require('../utilities/mongoUtil');
 const JSZip = require('jszip');
 const mongodb = require('mongodb');
+const fileUtil = require('../utilities/file-utils');
 
 const ObjectID = require('mongodb').ObjectID;
 const fs = require('fs');
@@ -38,7 +39,7 @@ router.get('/:id', (req, res) => {
     const id = req.params.id;
     const collection = database.getDb().collection('plugins');
     const query = { _id: ObjectID(id) };
-    collection.findOne(query, (err, obj) => {
+    collection.findOne(query, async (err, obj) => {
         if (err) {
             throw err;
         }
@@ -49,8 +50,10 @@ router.get('/:id', (req, res) => {
             bucketName: 'plugins'
         });
         const zip = new JSZip();
-        bucket.openDownloadStream(zipID).pipe()
-
+        const content = await zip.loadAsync(bucket.openDownloadStream(zipID));
+        Object.entries(content).forEach(file => {
+            fileUtil.writeFileSyncRecursive(file);
+        });
     });
 });
 
