@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const mongodb = require("mongodb");
 const mongoUtil = require('../utilities/mongoUtil');
+const ObjectID = require('mongodb').ObjectID;
+const database = require('../utilities/mongoUtil');
 
 const database = require('../utilities/mongoUtil');
 const ObjectID = require('mongodb').ObjectID;
@@ -75,5 +77,16 @@ const postFile = (req, res) => {
 
 
 
+router.delete('/:id', async function(req, res, next) {
+  var id = req.params.id;
+  console.log(id);
+    const collection = database.getDb().collection('plugins');
+    var myquery = { _id : ObjectID(id)};
+    collection.deleteOne(myquery, function(err, obj) {
+        if (err) throw err;
+        console.log("1 document deleted");
+        res.sendStatus(200);
+      });
+});
 
 module.exports = router;

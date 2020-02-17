@@ -3,9 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "supervisor ./bin/www"
   },
   "dependencies": {
+    "bcrypt": "^3.0.8",
     "body-parser": "latest",
     "cookie-parser": "~1.4.4",
     "cors": "^2.8.5",

@@ -9,6 +9,7 @@ const cors = require('cors');
 var upload = multer();
 
 var filesRouter = require('./routes/files');
+const accountRouter = require('./routes/account');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const pluginsRouter = require('./routes/plugins');
@@ -39,6 +40,7 @@ app.use('/users', usersRouter);
 app.use('/plugins', pluginsRouter);
 app.use('/files', filesRouter);
 
+app.use('/account', accountRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
