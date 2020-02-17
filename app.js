@@ -8,10 +8,12 @@ var multer = require('multer');
 const cors = require('cors');
 var upload = multer();
 
+var filesRouter = require('./routes/files');
 const accountRouter = require('./routes/account');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const pluginsRouter = require('./routes/plugins');
+
 const mongoUtil = require("./utilities/mongoUtil");
 
 var app = express();
@@ -36,6 +38,8 @@ if(app.get('env')=== 'development') {
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/plugins', pluginsRouter);
+app.use('/files', filesRouter);
+
 app.use('/account', accountRouter);
 
 // catch 404 and forward to error handler

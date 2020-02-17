@@ -14,10 +14,6 @@ router.get('/file/:filename', async (req, res) => {
     let bucket = new mongodb.GridFSBucket(mongoUtil.getDb(), {bucketName: 'images'});
     let fileCollection = mongoUtil.getDb().collection("images.files");
     let result = await fileCollection.findOne({filename: req.params.filename});
-    console.log(result);
-
-
-
     let downloadStream = bucket.openDownloadStream(ObjectID(result._id));
 
     downloadStream.on('data', (chunk) => {
@@ -37,7 +33,7 @@ router.get('/file/:filename', async (req, res) => {
 /* GET users listing. */
 router.post('/image',function uploadAudio(req, res) {
   let storage = multer.diskStorage({
-    destination: '/upload'
+    destination: '../upload'
   });
   let upload = multer({
     storage: storage
@@ -55,7 +51,7 @@ router.post('/image',function uploadAudio(req, res) {
           bucketName: 'images'
         });
         fs.createReadStream(item.path).pipe(
-            bucket.openUploadStream(item.originalname)).on('error', function(error) {
+            bucket.openUploadStream(item.filename)).on('error', function(error) {
           console.log('Error:-', error);
         }).on('finish', function() {
           console.log('File Inserted!!');
