@@ -37,6 +37,13 @@ router.get('/:id', (req, res) => {
         }
         console.log(`Requested plugin of id : ${id}`);
         const zipID = obj.zipID;
+        const bucket = new mongodb.GridFSBucket(database.getDb(), {
+            chunkSizeBytes: 1024,
+            bucketName: 'plugins'
+        });
+        const zip = new JSZip();
+        bucket.openDownloadStream(zipID).pipe()
+
     });
 });
 
