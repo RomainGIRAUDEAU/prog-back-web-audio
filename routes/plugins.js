@@ -1,11 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const mongodb = require("mongodb");
-const mongoUtil = require('../utilities/mongoUtil');
-const ObjectID = require('mongodb').ObjectID;
 const database = require('../utilities/mongoUtil');
 
-const database = require('../utilities/mongoUtil');
 const ObjectID = require('mongodb').ObjectID;
 const fs = require('fs');
 const multer = require('multer');
@@ -18,14 +15,11 @@ router.post('/', async function (req, res) {
         const collection = database.getDb().collection('plugins')
         req.body.filename = img.filename;
         collection.insertOne(req.body).then((r) => {
-            console.log(r);
             res.sendStatus(200);
         }).catch((err) => {
-            console.log(err);
             res.sendStatus(404)
         });
     }).catch((err) => {
-        console.log(err);
         res.sendStatus(404)
     })
 });
@@ -56,7 +50,7 @@ const postFile = (req, res) => {
             } else {
                 req.files.forEach(async function (item) {
                     // save into the db our file
-                    var bucket = new mongodb.GridFSBucket(mongoUtil.getDb(), {
+                    var bucket = new mongodb.GridFSBucket(database.getDb(), {
                         chunkSizeBytes: 1024,
                         bucketName: 'images'
                     });
