@@ -108,7 +108,7 @@ router.delete('/:id', async function (req, res, next) {
 });
 
 
-router.post('/:id', async function (req, res, next) {
+router.post('/:id/comments', async function (req, res, next) {
     var id = req.params.id;
     const collection = database.getDb().collection('plugins');
     collection.findOneAndUpdate({ _id: ObjectID(id) },
