@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const mongodb = require("mongodb");
 const database = require('../utilities/mongoUtil');
 const JSZip = require('jszip');
 const mongodb = require('mongodb');
@@ -11,7 +10,6 @@ const fs = require('fs');
 const multer = require('multer');
 
 
-// POST new plugin
 router.post('/', async function (req, res) {
     postFile(req, res).then((img) => {
         const collection = database.getDb().collection('plugins')
