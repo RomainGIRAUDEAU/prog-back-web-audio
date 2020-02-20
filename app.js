@@ -9,10 +9,12 @@ const cors = require('cors');
 var upload = multer();
 const withAuth = require('./utilities/middleware');
 
+var filesRouter = require('./routes/files');
 const accountRouter = require('./routes/account');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const pluginsRouter = require('./routes/plugins');
+
 const mongoUtil = require("./utilities/mongoUtil");
 
 var app = express();
@@ -34,9 +36,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 if(app.get('env')=== 'development') {
   app.use(cors());
 }
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
+app.use('/plugins', pluginsRouter);
+app.use('/files', filesRouter);
+
 app.use('/account', accountRouter);
-app.use('/',withAuth, indexRouter);
-app.use('/users', withAuth ,usersRouter);
+//app.use('/',withAuth, indexRouter);
+//app.use('/users', withAuth ,usersRouter);
 app.use('/plugins', pluginsRouter);
 
 
