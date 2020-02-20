@@ -2,6 +2,10 @@ var express = require('express');
 var router = express.Router();
 const bcrypt = require('bcrypt');
 const mongoUtil = require('../utilities/mongoUtil');
+const jwt = require("jsonwebtoken");
+const withAuth = require('../utilities/middleware');
+
+const secret = 'mysecretsshhh';
 
 const saltRounds = 10;
 /* GET home page. */
@@ -41,7 +45,14 @@ router.post('/check_account', async function (req, res, next) {
     let passwordFromDataBase = answer.password;
     let response = bcrypt.compareSync(passwordGiven, passwordFromDataBase); // true
     if( response === true){
-        res.status(200).send(answer);
+        // Issue token
+        const payload = {};
+        const token = jwt.sign(payload, secret, {
+            expiresIn: '1h'
+        });
+            res.status(200).send({ 'token': token});
+            //res.cookie    ('token', token, { httpOnly: true }).sendStatus(200);
+        //res.status(200).send(answer);
     }
     else{
         res.status(401).send({});
@@ -49,6 +60,9 @@ router.post('/check_account', async function (req, res, next) {
 
 
 
+});
+router.get('/checkToken', withAuth, function(req, res) {
+    res.sendStatus(200);
 });
 
 module.exports = router;

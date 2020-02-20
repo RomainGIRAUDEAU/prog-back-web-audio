@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 var multer = require('multer');
 const cors = require('cors');
 var upload = multer();
+const withAuth = require('./utilities/middleware');
 
 const accountRouter = require('./routes/account');
 var indexRouter = require('./routes/index');
@@ -33,10 +34,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 if(app.get('env')=== 'development') {
   app.use(cors());
 }
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/plugins', pluginsRouter);
 app.use('/account', accountRouter);
+app.use('/',withAuth, indexRouter);
+app.use('/users', withAuth ,usersRouter);
+app.use('/plugins', pluginsRouter);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
