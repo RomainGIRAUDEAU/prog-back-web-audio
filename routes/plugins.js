@@ -88,6 +88,7 @@ const postFile = (req, res) => {
                         const insert = await insertIntoGFS(item, bucket);
                         files.push(insert);
                         //TODO remove file
+
                     } catch (err) {
                         console.log(err);
                         reject(err);
@@ -96,6 +97,7 @@ const postFile = (req, res) => {
 
                 if (files.length === 2) {
                     resolve(files);
+                    fileUtil.deleteFolderRecursive("./public/uploads");
                 }else {
                     reject(new Error("Failed to insert in db"));
                 }
