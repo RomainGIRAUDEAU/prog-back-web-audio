@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 var multer = require('multer');
 const cors = require('cors');
 var upload = multer();
+const withAuth = require('./utilities/middleware');
 
 var filesRouter = require('./routes/files');
 const accountRouter = require('./routes/account');
@@ -41,6 +42,10 @@ app.use('/plugins', pluginsRouter);
 app.use('/files', filesRouter);
 
 app.use('/account', accountRouter);
+//app.use('/',withAuth, indexRouter);
+//app.use('/users', withAuth ,usersRouter);
+app.use('/plugins', pluginsRouter);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

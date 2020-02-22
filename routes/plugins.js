@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const database = require('../utilities/mongoUtil');
 const JSZip = require('jszip');
-const mongodb = require('mongodb');
+
 const fileUtil = require('../utilities/file-utils');
 const crypto = require('crypto');
 const ObjectID = require('mongodb').ObjectID;
@@ -163,12 +163,12 @@ const insertIntoGFS = (item, bucket) => {
 
 
 
-router.delete('/:id', async function (req, res, next) {
+router.delete('/:id', async function(req, res, next) {
     var id = req.params.id;
     //console.log(id);
     const collection = database.getDb().collection('plugins');
     var myquery = { _id: ObjectID(id) };
-    collection.deleteOne(myquery, function (err, obj) {
+    collection.deleteOne(myquery, function(err, obj) {
         if (err) throw err;
         console.log("1 document deleted");
         res.sendStatus(200);
@@ -176,12 +176,10 @@ router.delete('/:id', async function (req, res, next) {
 });
 
 
-router.post('/:id/comments', async function (req, res, next) {
+router.post('/:id/comments', async function(req, res, next) {
     var id = req.params.id;
     const collection = database.getDb().collection('plugins');
-    collection.findOneAndUpdate({ _id: ObjectID(id) },
-        { $addToSet: { comments: { author: req.body.author, text: req.body.text, rate: req.body.rate } } },
-        { returnNewDocument: true },
+    collection.findOneAndUpdate({ _id: ObjectID(id) }, { $addToSet: { comments: { author: req.body.author, text: req.body.text, rate: req.body.rate } } }, { returnNewDocument: true },
         (err, doc) => {
             if (err) {
                 console.log("Something wrong when updating data!");
