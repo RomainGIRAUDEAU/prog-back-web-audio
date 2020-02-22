@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const database = require('../utilities/mongoUtil');
 const JSZip = require('jszip');
-
+const mongodb = require('mongodb');
 const fileUtil = require('../utilities/file-utils');
 const crypto = require('crypto');
 const ObjectID = require('mongodb').ObjectID;
@@ -49,10 +49,10 @@ router.get('/:id', async (req, res) => {
     try {
         const plugin = await collection.findOne(query)
         res.status(200).send(plugin);
-    }catch(err) {
+    } catch (err) {
         console.log(err);
         res.sendStatus(500);
-    }       
+    }
 });
 
 router.get('/:id/plugin', async (req, res) => {
@@ -66,29 +66,60 @@ router.get('/:id/plugin', async (req, res) => {
             bucketName: 'zips'
         });
         const zip = new JSZip();
-        const content = await zip.loadAsync(bucket.openDownloadStream(zipID));
-        Object.entries(content).forEach(file => {
-            console.log(file);
-            fileUtil.writeFileSyncRecursive(path.join('public/temp/', id, file));
-        });
-    }catch(err) {
+        const buffer = await readZip(pluginBucket, plugin.zipName);
+        const content = await zip.loadAsync(buffer);
+        if (!fs.existsSync(path.join('public/temp/', id))) {
+            Object.entries(content.files).forEach(async ([key, value]) => {
+                try{
+                    const data = await zip.file(value.name).async('nodebuffer');
+                    if (data) {
+                        fileUtil.writeFileSyncRecursive(path.join('public/temp/', id, value.name), data);
+                    }
+                }catch(err) {
+                    console.log(err);
+                    res.sendStatus(500);
+                }
+                
+            });
+            res.status(200).send({ url: `/temp/${id}` });
+        }else {
+            res.status(200).send({ url: `/temp/${id}` });
+        }
+
+    } catch (err) {
         console.log(err);
         res.sendStatus(500);
     }
 });
 
+const readZip = async (bucket, name) => {
+    return new Promise((resolve, reject) => {
+        const contentChunks = [];
+        const contentStream = bucket.openDownloadStreamByName(name);
+        contentStream.on('error', (err) => reject(err));
+        contentStream.on('data', (chunk) => {
+            contentChunks.push(chunk);
+        });
+        contentStream.on('end', () => {
+            const content = Buffer.concat(contentChunks);
+            resolve(content);
+        });
+    });
+
+}
+
 router.get('/:id/image', async (req, res) => {
     const id = req.params.id;
     const collection = database.getDb().collection('plugins');
     const query = { _id: ObjectID(id) };
-    try{
+    try {
         const plugin = await collection.findOne(query);
         const imageBucket = new mongodb.GridFSBucket(database.getDb(), {
             chunkSizeBytes: 1024,
             bucketName: 'images'
         });
         imageBucket.openDownloadStreamByName(plugin.imageName).pipe(res);
-    }catch(err) {
+    } catch (err) {
         console.log(err);
         res.sendStatus(500);
     }
@@ -163,12 +194,12 @@ const insertIntoGFS = (item, bucket) => {
 
 
 
-router.delete('/:id', async function(req, res, next) {
+router.delete('/:id', async function (req, res, next) {
     var id = req.params.id;
     //console.log(id);
     const collection = database.getDb().collection('plugins');
     var myquery = { _id: ObjectID(id) };
-    collection.deleteOne(myquery, function(err, obj) {
+    collection.deleteOne(myquery, function (err, obj) {
         if (err) throw err;
         console.log("1 document deleted");
         res.sendStatus(200);
@@ -176,7 +207,7 @@ router.delete('/:id', async function(req, res, next) {
 });
 
 
-router.post('/:id/comments', async function(req, res, next) {
+router.post('/:id/comments', async function (req, res, next) {
     var id = req.params.id;
     const collection = database.getDb().collection('plugins');
     collection.findOneAndUpdate({ _id: ObjectID(id) }, { $addToSet: { comments: { author: req.body.author, text: req.body.text, rate: req.body.rate } } }, { returnNewDocument: true },
