@@ -4,17 +4,24 @@ const database = require('../utilities/mongoUtil');
 const JSZip = require('jszip');
 const mongodb = require('mongodb');
 const fileUtil = require('../utilities/file-utils');
-
+const crypto = require('crypto');
 const ObjectID = require('mongodb').ObjectID;
 const fs = require('fs');
 const multer = require('multer');
+const path = require('path');
 
 
 router.post('/', async function (req, res) {
     postFile(req, res).then((img) => {
         const collection = database.getDb().collection('plugins')
-        req.body.filename = img.filename;
-        collection.insertOne(req.body).then((r) => {
+        const plugin = {
+            name: req.body.name,
+            description: req.body.description,
+            version: req.body.version,
+            zipName: img[1],
+            imageName: img[0]
+        }
+        collection.insertOne(plugin).then((r) => {
             res.sendStatus(200);
         }).catch((err) => {
             res.sendStatus(404)
@@ -60,36 +67,65 @@ const postFile = (req, res) => {
     return new Promise((resolve, reject) => {
 
         let storage = multer.diskStorage({
-            destination: '../upload'
+            destination: './public/uploads'
         });
         let upload = multer({
             storage: storage
         }).any();
-        upload(req, res, function (err) {
+        upload(req, res, async function (err) {
             if (err) {
                 console.log(err);
                 throw new Error();
             } else {
-                req.files.forEach(async function (item) {
+                const files = [];
+                for (item of req.files) {
                     // save into the db our file
                     var bucket = new mongodb.GridFSBucket(database.getDb(), {
                         chunkSizeBytes: 1024,
-                        bucketName: 'images'
+                        bucketName: item.fieldname + "s"
                     });
-                    fs.createReadStream(item.path).pipe(
-                        bucket.openUploadStream(item.filename)).on('error', function (error) {
-                            console.log('Error:-', error);
-                            throw new Error();
-                        }).on('finish', function () {
-                            console.log('File Inserted!!');
-                            console.log(item);
-                            resolve(item);
-                        });
-                });
+                    try {
+                        const insert = await insertIntoGFS(item, bucket);
+                        files.push(insert);
+                        //TODO remove file
+                    } catch (err) {
+                        console.log(err);
+                        reject(err);
+                    }
+                }
+
+                if (files.length === 2) {
+                    resolve(files);
+                }else {
+                    reject(new Error("Failed to insert in db"));
+                }
+
             }
         });
     })
 };
+
+const insertIntoGFS = (item, bucket) => {
+    return new Promise((resolve, reject) => {
+        crypto.randomBytes(16, (err, buf) => {
+            if (err) {
+                reject(err);
+            }
+            const filename = buf.toString('hex') + path.extname(item.originalname);
+            fs.createReadStream(item.path).pipe(
+                bucket.openUploadStream(filename)).on('error', function (error) {
+                    console.log('Error:-', error);
+                    reject(error);
+                }).on('finish', function () {
+                    console.log('File Inserted!!');
+                    console.log(item);
+                    resolve(filename);
+                });
+        });
+
+    });
+
+}
 
 
 
