@@ -31,6 +31,8 @@ router.post('/', async function (req, res) {
     })
 });
 
+
+
 router.get('/', async function (req, res, next) {
     const collection = database.getDb().collection('plugins');
     const result = await collection.find({}).toArray();
@@ -40,26 +42,56 @@ router.get('/', async function (req, res, next) {
     res.status(200).send(result);
 });
 
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
     const id = req.params.id;
     const collection = database.getDb().collection('plugins');
     const query = { _id: ObjectID(id) };
-    collection.findOne(query, async (err, obj) => {
-        if (err) {
-            throw err;
-        }
-        console.log(`Requested plugin of id : ${id}`);
-        const zipID = obj.zipID;
-        const bucket = new mongodb.GridFSBucket(database.getDb(), {
+    try {
+        const plugin = await collection.findOne(query)
+        res.status(200).send(plugin);
+    }catch(err) {
+        console.log(err);
+        res.sendStatus(500);
+    }       
+});
+
+router.get('/:id/plugin', async (req, res) => {
+    const id = req.params.id;
+    const collection = database.getDb().collection('plugins');
+    const query = { _id: ObjectID(id) };
+    try {
+        const plugin = await collection.findOne(query);
+        const pluginBucket = new mongodb.GridFSBucket(database.getDb(), {
             chunkSizeBytes: 1024,
-            bucketName: 'plugins'
+            bucketName: 'zips'
         });
         const zip = new JSZip();
         const content = await zip.loadAsync(bucket.openDownloadStream(zipID));
         Object.entries(content).forEach(file => {
-            fileUtil.writeFileSyncRecursive(file);
+            console.log(file);
+            fileUtil.writeFileSyncRecursive(path.join('public/temp/', id, file));
         });
-    });
+    }catch(err) {
+        console.log(err);
+        res.sendStatus(500);
+    }
+});
+
+router.get('/:id/image', async (req, res) => {
+    const id = req.params.id;
+    const collection = database.getDb().collection('plugins');
+    const query = { _id: ObjectID(id) };
+    try{
+        const plugin = await collection.findOne(query);
+        const imageBucket = new mongodb.GridFSBucket(database.getDb(), {
+            chunkSizeBytes: 1024,
+            bucketName: 'images'
+        });
+        imageBucket.openDownloadStreamByName(plugin.imageName).pipe(res);
+    }catch(err) {
+        console.log(err);
+        res.sendStatus(500);
+    }
 });
 
 
@@ -98,7 +130,7 @@ const postFile = (req, res) => {
                 if (files.length === 2) {
                     resolve(files);
                     fileUtil.deleteFolderRecursive("./public/uploads");
-                }else {
+                } else {
                     reject(new Error("Failed to insert in db"));
                 }
 
