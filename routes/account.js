@@ -50,7 +50,8 @@ router.post('/check_account', async function (req, res, next) {
         const token = jwt.sign(payload, secret, {
             expiresIn: '1h'
         });
-            res.status(200).send({ 'token': token});
+            res.status(200).send({ 'token': token,'name':req.body.name});
+
             //res.cookie    ('token', token, { httpOnly: true }).sendStatus(200);
         //res.status(200).send(answer);
     }
