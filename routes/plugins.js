@@ -18,6 +18,8 @@ router.post('/', async function (req, res) {
             name: req.body.name,
             description: req.body.description,
             version: req.body.version,
+            categories: req.body.categories,
+            isOpenSource: req.body.isOpenSource,
             zipName: img[1],
             imageName: img[0]
         }

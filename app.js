@@ -44,7 +44,6 @@ app.use('/files', filesRouter);
 app.use('/account', accountRouter);
 //app.use('/',withAuth, indexRouter);
 //app.use('/users', withAuth ,usersRouter);
-app.use('/plugins', pluginsRouter);
 
 
 // catch 404 and forward to error handler
